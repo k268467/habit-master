@@ -1,23 +1,65 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-export const useTodoStore = defineStore('todo', () => {
-  const todos = ref<{ id: number; text: string }[]>([])
+export type Habit = {
+  id: number
+  name: string
+  time: string
+  streakDays: number
+}
 
-  function addTodo(newText: string) {
-    todos.value.push({ id: Date.now(), text: newText })
+const initialHabits: Habit[] = [
+  {
+    id: 1,
+    name: '早朝ランニング',
+    time: '06:30',
+    streakDays: 18
+  },
+  {
+    id: 2,
+    name: '英単語学習',
+    time: '20:00',
+    streakDays: 11
+  }
+]
+
+export const useHabitStore = defineStore('habit', () => {
+  const habits = ref<Habit[]>(initialHabits)
+
+  function addHabit(newHabit: { name: string; time: string; streakDays: number }) {
+    habits.value.push({
+      id: Date.now(),
+      ...newHabit
+    })
   }
 
-  function updateTodo(id: number, newText: string) {
-    const todo = todos.value.find(t => t.id === id)
-    if (todo) todo.text = newText
+  function updateHabit(
+    id: number,
+    updatedHabit: { name: string; time: string; streakDays: number }
+  ) {
+    const target = habits.value.find(habit => habit.id === id)
+    if (!target) return
+
+    target.name = updatedHabit.name
+    target.time = updatedHabit.time
+    target.streakDays = updatedHabit.streakDays
   }
 
-  function deleteTodo(id: number) {
-    todos.value = todos.value.filter(t => t.id !== id)
+  function deleteHabit(id: number) {
+    habits.value = habits.value.filter(habit => habit.id !== id)
   }
 
-  return { todos, addTodo, updateTodo, deleteTodo }
+  function getHabitById(id: number) {
+    return habits.value.find(habit => habit.id === id)
+  }
+
+  return {
+    habits,
+    addHabit,
+    updateHabit,
+    deleteHabit,
+    getHabitById
+  }
 }, {
   persist: true
 })
