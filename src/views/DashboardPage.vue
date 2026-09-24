@@ -1,10 +1,35 @@
-<script setup>
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHabitStore } from '../stores/habit'
 
 const router = useRouter()
 const habitStore = useHabitStore()
-const streakDays = 18
+
+const selectedHabitId = ref<number | null>(habitStore.habits[0]?.id ?? null)
+
+const selectedHabit = computed(() =>
+  habitStore.habits.find(habit => habit.id === selectedHabitId.value) ?? null
+)
+
+watch(
+  () => habitStore.habits,
+  (habits) => {
+    if (habits.length === 0) {
+      selectedHabitId.value = null
+      return
+    }
+
+    if (!habits.some(habit => habit.id === selectedHabitId.value)) {
+      selectedHabitId.value = habits[0].id
+    }
+  },
+  { immediate: true }
+)
+
+function selectHabit(habitId: number) {
+  selectedHabitId.value = habitId
+}
 </script>
 
 <template>
@@ -12,8 +37,8 @@ const streakDays = 18
     <section class="habit-summary">
       <div class="summary-card highlight">
         <span class="label">継続日数</span>
-        <strong class="value">{{ streakDays }}日</strong>
-        <small>この調子で続けています</small>
+        <strong class="value">{{ selectedHabit?.streakDays ?? 0 }}日</strong>
+        <small>{{ selectedHabit ? selectedHabit.name : '習慣を選択してください' }}</small>
       </div>
     </section>
 
@@ -23,15 +48,21 @@ const streakDays = 18
     </div>
 
     <ul class="habit-list">
-      <li v-for="habit in habitStore.habits" :key="habit.id" class="habit-item">
+      <li
+        v-for="habit in habitStore.habits"
+        :key="habit.id"
+        class="habit-item"
+        :class="{ selected: selectedHabitId === habit.id }"
+        @click="selectHabit(habit.id)"
+      >
         <div class="habit-main">
           <span class="habit-name">{{ habit.name }}</span>
           <span class="habit-time">{{ habit.time }}</span>
         </div>
 
         <div class="habit-actions">
-          <button class="edit-btn" @click="router.push({ name: 'HabitEdit', params: { id: habit.id } })">編集</button>
-          <button @click="habitStore.deleteHabit(habit.id)" class="delete-btn">削除</button>
+          <button class="edit-btn" @click.stop="router.push({ name: 'HabitEdit', params: { id: habit.id } })">編集</button>
+          <button @click.stop="habitStore.deleteHabit(habit.id)" class="delete-btn">削除</button>
         </div>
       </li>
     </ul>
@@ -141,6 +172,14 @@ small {
   border-radius: 14px;
   padding: 14px 12px;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.habit-item.selected {
+  background: #eef2ff;
+  border-color: #6366f1;
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.12);
 }
 
 .habit-main {

@@ -8,23 +8,8 @@ export type Habit = {
   streakDays: number
 }
 
-const initialHabits: Habit[] = [
-  {
-    id: 1,
-    name: '早朝ランニング',
-    time: '06:30',
-    streakDays: 18
-  },
-  {
-    id: 2,
-    name: '英単語学習',
-    time: '20:00',
-    streakDays: 11
-  }
-]
-
 export const useHabitStore = defineStore('habit', () => {
-  const habits = ref<Habit[]>(initialHabits)
+  const habits = ref<Habit[]>([])
 
   function addHabit(newHabit: { name: string; time: string; streakDays: number }) {
     habits.value.push({
