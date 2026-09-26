@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
 withDefaults(
   defineProps<{
     title?: string
@@ -9,16 +11,17 @@ withDefaults(
     showBackButton: false
   }
 )
+
+const router = useRouter()
 </script>
 
 <template>
   <header class="app-header">
     <div class="left">
       <button v-if="showBackButton" class="nav-btn">←</button>
-      <div class="brand">Habit Master</div>
+      <button class="brand" @click="router.push({ name: 'Dashboard' })">Habit Master</button>
     </div>
 
-    <h1 class="title">{{ title }}</h1>
   </header>
 </template>
 
@@ -44,6 +47,10 @@ withDefaults(
   font-weight: 700;
   font-size: 1.1rem;
   color: #111827;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .title {

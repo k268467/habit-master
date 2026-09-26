@@ -17,6 +17,11 @@ const routes = [
     component: () => import('../views/HabitFormPage.vue')
   },
   {
+    path: '/habits/:id/run',
+    name: 'HabitRun',
+    component: () => import('../components/TimerDisplay.vue')
+  },
+  {
     path: '/auth',
     name: 'Auth',
     component: () => import('../views/AuthPage.vue')

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useHabitStore } from '../stores/habit'
 
+const route = useRoute()
 const router = useRouter()
 const habitStore = useHabitStore()
 
 const selectedHabitId = ref<number | null>(habitStore.habits[0]?.id ?? null)
+const isCelebrating = ref(false)
 
 const selectedHabit = computed(() =>
   habitStore.habits.find(habit => habit.id === selectedHabitId.value) ?? null
@@ -27,6 +29,21 @@ watch(
   { immediate: true }
 )
 
+watch(
+  () => route.query.celebrate,
+  (value) => {
+    if (value === '1') {
+      isCelebrating.value = true
+
+      window.setTimeout(() => {
+        isCelebrating.value = false
+        router.replace({ name: 'Dashboard' })
+      }, 1000)
+    }
+  },
+  { immediate: true }
+)
+
 function selectHabit(habitId: number) {
   selectedHabitId.value = habitId
 }
@@ -36,9 +53,23 @@ function selectHabit(habitId: number) {
   <div class="habit-app">
     <section class="habit-summary">
       <div class="summary-card highlight">
-        <span class="label">継続日数</span>
-        <strong class="value">{{ selectedHabit?.streakDays ?? 0 }}日</strong>
-        <small>{{ selectedHabit ? selectedHabit.name : '習慣を選択してください' }}</small>
+        <div class="summary-card-content">
+          <div v-if="isCelebrating" class="streak-celebration" aria-hidden="true">
+            <span v-for="n in 20" :key="n" class="spark" :style="{ '--x': (Math.random() * 180 - 90) + 'px', '--y': (Math.random() * 180 - 90) + 'px', '--delay': (Math.random() * 0.4) + 's', '--color': ['#fbbf24', '#a78bfa', '#34d399', '#f472b6', '#f97316'][n % 5] }" />
+          </div>
+
+          <span class="label">継続日数</span>
+          <strong class="value">{{ selectedHabit?.streakDays ?? 0 }}日</strong>
+          <small>{{ selectedHabit ? selectedHabit.name : '習慣を選択してください' }}</small>
+        </div>
+
+        <button
+          v-if="selectedHabit"
+          class="run-btn"
+          @click="router.push({ name: 'HabitRun', params: { id: selectedHabit.id } })"
+        >
+          実行
+        </button>
       </div>
     </section>
 
@@ -86,13 +117,58 @@ function selectHabit(habitId: number) {
 }
 
 .summary-card {
-  width: 72%;
-  max-width: 340px;
+  width: 62%;
+  max-width: 300px;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   color: white;
   border-radius: 18px;
-  padding: 24px 20px;
+  padding: 22px 20px 20px;
   box-shadow: 0 10px 25px rgba(79, 70, 229, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summary-card-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.streak-celebration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.spark {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  width: 14px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--color);
+  opacity: 0;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+  animation: streak-burst 1.1s ease-out forwards;
+  animation-delay: var(--delay);
+}
+
+@keyframes streak-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x) * 1.8), calc(-50% + var(--y) * 1.8)) scale(1.7) rotate(180deg);
+  }
 }
 
 .label {
@@ -130,6 +206,7 @@ small {
   font-size: 1.4rem;
 }
 
+.run-btn,
 .add-btn,
 .edit-btn,
 .delete-btn {
@@ -137,6 +214,22 @@ small {
   border-radius: 10px;
   cursor: pointer;
   font-size: 0.85rem;
+}
+
+.run-btn {
+  background: #c7f27a;
+  color: #1f2937;
+  padding: 8px 16px;
+  font-weight: 700;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 14px rgba(168, 230, 80, 0.25);
+  width: fit-content;
+  align-self: center;
+}
+
+.run-btn:hover {
+  background: #9adf41;
+  box-shadow: 0 8px 18px rgba(122, 214, 52, 0.28);
 }
 
 .add-btn {

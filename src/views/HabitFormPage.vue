@@ -11,14 +11,14 @@ const isEditMode = computed(() => route.name === 'HabitEdit')
 
 const form = reactive({
   name: '',
-  time: '09:00',
+  time: '00:10',
   streakDays: 0
 })
 
 function fillFormFromHabit() {
   if (!isEditMode.value) {
     form.name = ''
-    form.time = '09:00'
+    form.time = '00:10'
     form.streakDays = 0
     return
   }
@@ -86,7 +86,13 @@ function handleSubmit() {
 
         <label class="field">
           <span>実行時間</span>
-          <input v-model="form.time" type="time" />
+          <input
+            v-model="form.time"
+            type="text"
+            maxlength="5"
+            placeholder="00:10"
+            pattern="^\d{2}:\d{2}$"
+          />
         </label>
 
         <div class="actions">
